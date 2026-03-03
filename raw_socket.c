@@ -10,6 +10,7 @@
 
 int tcp = 0;
 int udp = 0;
+int ipv6 = 0;
 int packets_count = 0;
 
 void transportLayerProtocol(int transport_Layer_Protocol, char *buf)
@@ -24,7 +25,6 @@ void transportLayerProtocol(int transport_Layer_Protocol, char *buf)
     case 17: {
         // in Hex, 24th byte of packet is 17 when it is "UDP"
         // not going inside of this
-        printf("Hello inside of the UDP case\n");
         udp += 1;
         snprintf(buf, 4, "%s", "UDP"); 
         break;
@@ -43,6 +43,7 @@ void linkLayerProtocol(int ethernetType_1, int ethernetType_2, char *buf)
         snprintf(buf, 5, "%s", "IPV4");
     } else if(ethernetType_1 == (int)134 && ethernetType_2 == (int)221) {
         //in hex 86,converted in decimal 134 & in hex dd,converted in decimal is 221
+        ipv6 += 1;
         snprintf(buf, 5, "%s", "IPV6"); //if ethernet type 0x86dd then ipv4, converted in decimal to manipulate 
     } else {
         snprintf(buf, sizeof(buf), "%s", "OTHERS");
@@ -54,26 +55,26 @@ void printDetails(unsigned char *buffer)
     // getting the type of the ethernet
     int tempEthTypeX = (int)buffer[12]; 		// 13th byte of packet 
  	int tempEthTypeY = (int)buffer[13]; 		// 14th byte of packet
-    
+
     int tempProtocol;
     char str[10]; // max 10 bytes
     char str2[10]; // max 10 bytes
     linkLayerProtocol(tempEthTypeX, tempEthTypeY, str);
-    
-    if (strcmp(str, "IPV4")) {
+
+    if (strcmp(str, "IPV4") == 0) {
         tempProtocol = (int)buffer[23];     // 24th byte of packet is defined transport layer protocol
         transportLayerProtocol(tempProtocol, str2); // getting the transportlayerprotocol
         printf("%s\n", str2);
-        if (strcmp(str2, "TCP")) {
+        if (strcmp(str2, "TCP") == 0) {
             printf("TCP packet woo hoo\n");
         } else if (strcmp(str2, "UDP")) {
             printf("UDP packet woo hoo\n");
         } else {
             printf("other packet\n");
         }
-    } else if (strcmp(str, "IPV6")) {
+    } else if (strcmp(str, "IPV6") == 0) {
         printf("this is the ipv6 thing\n");
-    } else if (strcmp(str, "OTHERS")) {
+    } else if (strcmp(str, "OTHERS") == 0) {
         printf("other type of internet protocol used\n");
     }
 }
@@ -103,8 +104,10 @@ int main()
         number_of_packets += 1;
     }
 
+    // now the thing is this not categorizing the packets properly
     printf("TCP Packets: %d\n", tcp);
     printf("UDP Packets: %d\n", udp);
+    printf("IPV6 Packets: %d\n", ipv6);
     printf("Number of Packets: %d\n", number_of_packets);
     return 0;
 }
